@@ -500,12 +500,17 @@
             redirectText.classList.add('fade-out');
 
             setTimeout(() => {
-                // Open in new tab instead of current window
-                window.open(link.url, '_blank');
-                // Go back to main page after opening new tab
-                redirectScreen.classList.remove('active');
-                loader.classList.remove('shooting');
-                redirectText.classList.remove('fade-out');
+                if (link.newTab) {
+                    // Only resume opens in new tab
+                    window.open(link.url, '_blank');
+                    // Go back to main page after opening new tab
+                    redirectScreen.classList.remove('active');
+                    loader.classList.remove('shooting');
+                    redirectText.classList.remove('fade-out');
+                } else {
+                    // All other redirects navigate in current tab
+                    window.location.href = link.url;
+                }
             }, 500);
         }, 1500);
     }
@@ -535,8 +540,12 @@
         const loader = document.getElementById('loader');
         const redirectText = document.getElementById('redirectText');
 
-        // Update redirect text
-        redirectText.textContent = `Opening ${link.name}...`;
+        // Update redirect text based on link type
+        if (link.newTab) {
+            redirectText.textContent = `Opening ${link.name}...`;
+        } else {
+            redirectText.textContent = `Redirecting to ${link.name}...`;
+        }
 
         // Show redirect screen
         redirectScreen.classList.add('active');
@@ -549,10 +558,15 @@
             redirectText.classList.add('fade-out');
 
             setTimeout(() => {
-                // Always open in new tab
-                window.open(link.url, '_blank');
-                // Reset and hide redirect screen
-                resetRedirectScreen();
+                if (link.newTab) {
+                    // Only resume opens in new tab
+                    window.open(link.url, '_blank');
+                    // Reset and hide redirect screen
+                    resetRedirectScreen();
+                } else {
+                    // All other links navigate in current tab
+                    window.location.href = link.url;
+                }
             }, 500);
         }, 1500);
     }
