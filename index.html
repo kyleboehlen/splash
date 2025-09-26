@@ -622,53 +622,67 @@
         if (redirectLink) {
             performRedirect(redirectLink);
         } else {
-            populateLinks();
-            createParticles();
+            // Always ensure main content is initialized
+            initializeMainContent();
         }
     });
 
-    // Handle browser back/forward button
-    window.addEventListener('popstate', () => {
-        // Reset any active redirect screen
-        resetRedirectScreen();
+    function initializeMainContent() {
+        const linksContainer = document.getElementById('linksContainer');
+        const mainContent = document.getElementById('mainContent');
 
-        // Check if we need to redirect again or show main content
-        const redirectLink = checkForRedirect();
-        if (redirectLink) {
-            performRedirect(redirectLink);
-        } else {
-            // Ensure main content is visible and populated
-            const mainContent = document.getElementById('mainContent');
+        // Clear and repopulate links
+        linksContainer.innerHTML = '';
+        populateLinks();
+        createParticles();
+
+        // Ensure main content is visible
+        mainContent.style.display = 'block';
+
+        // Hide redirect screen if it's showing
+        resetRedirectScreen();
+    }
+
+    // Handle browser back/forward button and page visibility
+    window.addEventListener('pageshow', (event) => {
+        // This fires when page is loaded from cache (back button)
+        if (event.persisted || performance.navigation.type === 2) {
+            // Page was restored from cache or user navigated back
+            setTimeout(() => {
+                const redirectLink = checkForRedirect();
+                if (!redirectLink) {
+                    initializeMainContent();
+                }
+            }, 100);
+        }
+    });
+
+    window.addEventListener('popstate', () => {
+        // Handle browser back/forward navigation
+        setTimeout(() => {
+            const redirectLink = checkForRedirect();
+            if (redirectLink) {
+                performRedirect(redirectLink);
+            } else {
+                initializeMainContent();
+            }
+        }, 50);
+    });
+
+    // Additional backup for edge cases
+    window.addEventListener('focus', () => {
+        // Check if we need to reinitialize when window regains focus
+        setTimeout(() => {
+            const redirectScreen = document.getElementById('redirectScreen');
             const linksContainer = document.getElementById('linksContainer');
 
-            mainContent.style.display = 'block';
-
-            // Repopulate links if container is empty
-            if (linksContainer.children.length === 0) {
-                populateLinks();
-            }
-
-            // Restart particles if needed
-            createParticles();
-        }
-    });
-
-    // Add a page visibility handler as backup
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-            const redirectScreen = document.getElementById('redirectScreen');
-            const mainContent = document.getElementById('mainContent');
-
-            // If redirect screen is not active but main content isn't showing properly
-            if (!redirectScreen.classList.contains('active')) {
-                mainContent.style.display = 'block';
-
-                const linksContainer = document.getElementById('linksContainer');
-                if (linksContainer.children.length === 0) {
-                    populateLinks();
+            if (!redirectScreen.classList.contains('active') && linksContainer.children.length === 0) {
+                const redirectLink = checkForRedirect();
+                if (!redirectLink) {
+                    initializeMainContent();
                 }
             }
-        }
+        }, 100);
     });
 </script>
 </body>
