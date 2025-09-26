@@ -357,11 +357,7 @@
 <div class="container" id="mainContent">
     <div class="logo-container">
         <div class="logo">
-            <svg width="60" height="60" viewBox="0 0 100 100">
-                <!-- Placeholder logo - replace with your actual SVG -->
-                <rect x="20" y="20" width="60" height="60" fill="#666" rx="10"/>
-                <text x="50" y="55" text-anchor="middle" fill="#333" font-size="20" font-weight="bold">KB</text>
-            </svg>
+            <img src="./klogo.jpg" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px;" />
         </div>
     </div>
 
@@ -374,6 +370,11 @@
 </div>
 
 <div class="redirect-screen" id="redirectScreen">
+    <div class="logo-container">
+        <div class="logo">
+            <img src="./klogo.jpg" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px;" />
+        </div>
+    </div>
     <div class="loader" id="loader"></div>
     <div class="redirect-text" id="redirectText">Redirecting...</div>
 </div>
@@ -425,7 +426,7 @@
             name: "B.E.A.C.O.N.",
             url: "https://beaconconsole.net",
             icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+                    <path d="M12,2L22,20H2L12,2M12,6L6,18H18L12,6Z"/>
                 </svg>`,
             redirectSubdomains: ["beacon", "se4x"]
         },
@@ -441,7 +442,7 @@
             name: "Mountain Project",
             url: "https://www.mountainproject.com/user/201713317/kyle-boehlen",
             icon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3.5,18.49L6,15.95L10.85,20.8L14,17.65L21.5,25.15H2.5L3.5,18.49M9.35,15.65L11.56,13.44L15,16.88L12.43,19.45L9.35,15.65M8.64,2.5L12.5,6.4L16.36,2.54L19.5,5.68L12.5,12.68L5.5,5.68L8.64,2.5Z"/>
+                    <path d="M2,20L8,8L12,12L16,6L22,14L24,20H2Z"/>
                 </svg>`,
             redirectSubdomains: ["mountainproject", "mtnproject"]
         },
@@ -517,10 +518,11 @@
         linkEl.className = 'link-item';
         linkEl.href = link.url;
 
-        if (link.newTab) {
-            linkEl.target = '_blank';
-            linkEl.rel = 'noopener noreferrer';
-        }
+        // Add click handler for redirect animation
+        linkEl.addEventListener('click', (e) => {
+            e.preventDefault();
+            showRedirectAnimation(link);
+        });
 
         linkEl.innerHTML = `
                 <div class="link-icon">${link.icon}</div>
@@ -529,6 +531,46 @@
             `;
 
         return linkEl;
+    }
+
+    function showRedirectAnimation(link) {
+        const redirectScreen = document.getElementById('redirectScreen');
+        const loader = document.getElementById('loader');
+        const redirectText = document.getElementById('redirectText');
+
+        // Update redirect text
+        redirectText.textContent = `Redirecting to ${link.name}...`;
+
+        // Show redirect screen
+        redirectScreen.classList.add('active');
+        loader.classList.add('spinning');
+
+        // Spin for 1.5 seconds, then shoot off and redirect
+        setTimeout(() => {
+            loader.classList.remove('spinning');
+            loader.classList.add('shooting');
+            redirectText.classList.add('fade-out');
+
+            setTimeout(() => {
+                if (link.newTab) {
+                    window.open(link.url, '_blank');
+                    // Reset and hide redirect screen
+                    resetRedirectScreen();
+                } else {
+                    window.location.href = link.url;
+                }
+            }, 500);
+        }, 1500);
+    }
+
+    function resetRedirectScreen() {
+        const redirectScreen = document.getElementById('redirectScreen');
+        const loader = document.getElementById('loader');
+        const redirectText = document.getElementById('redirectText');
+
+        redirectScreen.classList.remove('active');
+        loader.classList.remove('shooting');
+        redirectText.classList.remove('fade-out');
     }
 
     function populateLinks() {
