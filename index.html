@@ -500,15 +500,12 @@
             redirectText.classList.add('fade-out');
 
             setTimeout(() => {
-                if (link.newTab) {
-                    window.open(link.url, '_blank');
-                    // Go back to main page after opening new tab
-                    redirectScreen.classList.remove('active');
-                    loader.classList.remove('shooting');
-                    redirectText.classList.remove('fade-out');
-                } else {
-                    window.location.href = link.url;
-                }
+                // Open in new tab instead of current window
+                window.open(link.url, '_blank');
+                // Go back to main page after opening new tab
+                redirectScreen.classList.remove('active');
+                loader.classList.remove('shooting');
+                redirectText.classList.remove('fade-out');
             }, 500);
         }, 1500);
     }
@@ -539,7 +536,7 @@
         const redirectText = document.getElementById('redirectText');
 
         // Update redirect text
-        redirectText.textContent = `Redirecting to ${link.name}...`;
+        redirectText.textContent = `Opening ${link.name}...`;
 
         // Show redirect screen
         redirectScreen.classList.add('active');
@@ -552,13 +549,10 @@
             redirectText.classList.add('fade-out');
 
             setTimeout(() => {
-                if (link.newTab) {
-                    window.open(link.url, '_blank');
-                    // Reset and hide redirect screen
-                    resetRedirectScreen();
-                } else {
-                    window.location.href = link.url;
-                }
+                // Always open in new tab
+                window.open(link.url, '_blank');
+                // Reset and hide redirect screen
+                resetRedirectScreen();
             }, 500);
         }, 1500);
     }
@@ -616,6 +610,50 @@
         } else {
             populateLinks();
             createParticles();
+        }
+    });
+
+    // Handle browser back/forward button
+    window.addEventListener('popstate', () => {
+        // Reset any active redirect screen
+        resetRedirectScreen();
+
+        // Check if we need to redirect again or show main content
+        const redirectLink = checkForRedirect();
+        if (redirectLink) {
+            performRedirect(redirectLink);
+        } else {
+            // Ensure main content is visible and populated
+            const mainContent = document.getElementById('mainContent');
+            const linksContainer = document.getElementById('linksContainer');
+
+            mainContent.style.display = 'block';
+
+            // Repopulate links if container is empty
+            if (linksContainer.children.length === 0) {
+                populateLinks();
+            }
+
+            // Restart particles if needed
+            createParticles();
+        }
+    });
+
+    // Add a page visibility handler as backup
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            const redirectScreen = document.getElementById('redirectScreen');
+            const mainContent = document.getElementById('mainContent');
+
+            // If redirect screen is not active but main content isn't showing properly
+            if (!redirectScreen.classList.contains('active')) {
+                mainContent.style.display = 'block';
+
+                const linksContainer = document.getElementById('linksContainer');
+                if (linksContainer.children.length === 0) {
+                    populateLinks();
+                }
+            }
         }
     });
 </script>
